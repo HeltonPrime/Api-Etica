@@ -20,7 +20,7 @@ def validar_usuario(usuario, senha, filename='config.ini', section='DADOS'):
         cursor.execute(sql, parametros)
         resultado = cursor.fetchone()        
 
-        print ({'id_perfil': resultado[0], 'nome': resultado[1]})
+        #print ({'id_perfil': resultado[0], 'nome': resultado[1]})
         return {'id_perfil': resultado[0], 'nome': resultado[1]} if resultado else None
 
     except Exception as e:
@@ -42,11 +42,11 @@ def obter_permissoes(id_perfil, filename='config.ini', section='DADOS'):
         cursor = conn.cursor()
 
         permissoes_necessarias = [        
-            'Relatorio de Vendas e Comissões',
-            'Relatorios em Geral',
-            'Giro de Produtos',
-            'Registro de Entrada',
-            'Bloqueia Relatorio Caixa Diario'
+            'Relatorio de Vendas e Comissões', # Relatório de vendsa em geral
+            'Relatorios em Geral', # Comparativo
+            'Giro de Produtos', # Relatório de produtos por grupo e mais vendido
+            'Registro de Entrada', # Relatório de compras
+            'Movimento de Caixa Diário' # Fechamento de caixa
         ]
 
         placeholders = ', '.join(['?'] * len(permissoes_necessarias))
@@ -64,7 +64,7 @@ def obter_permissoes(id_perfil, filename='config.ini', section='DADOS'):
         permissoes = cursor.fetchall()
 
         # Retorna uma lista com as descricoes
-        print([{'permite': p[0], 'descricao': p[1]} for p in permissoes])
+        #print([{'permite': p[0], 'descricao': p[1]} for p in permissoes])
         return [{'permite': p[0], 'descricao': p[1]} for p in permissoes]
 
     except Exception as e:
@@ -77,7 +77,19 @@ def obter_permissoes(id_perfil, filename='config.ini', section='DADOS'):
 
         if conn:
             conn.close()
-                     
+
+def vendas_produtos_grupo()
+    conn = None
+    cursor = None
+    try:
+        conn = obter_conexao(filename, section)
+        cursor = conn.cursor()
+
+        sql = f'''
+            
+        '''
+
+        
     
 # Teste validar_usuario
 # print(validar_usuario('teste', '123'))
