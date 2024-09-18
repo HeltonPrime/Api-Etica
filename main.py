@@ -16,7 +16,7 @@ from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import datetime, timedelta, timezone
 from pydantic import BaseModel
-from querys import validar_usuario
+import querys
 
 # Configurações para JWT
 SECRET_KEY = "chave_de_segurança"
@@ -41,7 +41,7 @@ def criar_token_jwt(data: dict, expires_delta: timedelta = None):
 # Rota para validar usuário
 @app.post("/login/")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    usuario_validado = validar_usuario(form_data.username, form_data.password, 'src/config.ini', 'DADOS')
+    usuario_validado = querys.validar_usuario(form_data.username, form_data.password, 'src/config.ini', 'DADOS')
 
     if usuario_validado is None:
         raise HTTPException(
@@ -52,7 +52,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     # Criação do token com o ID_PERFIL e o nome do usuário
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     token_data = {
-        "sub": usuario_validado['usuario'],
+        "sub": usuario_validado['nome'],
         "id_perfil": usuario_validado['id_perfil']
     }
     access_token = criar_token_jwt(
@@ -66,16 +66,20 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 async def acessar_dashboard(token: str = Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        usuario = payload.get("sub")
+        funcionario = payload.get("sub")
         id_perfil = payload.get("id_perfil")
-        if usuario is None or id_perfil is None:
+        if funcionario is None or id_perfil is None:
             raise HTTPException(status_code=401, detail="Token Inválido")
+
+        # Obtém as permissões do perfil
+        permissoes = querys.obter_permissoes(id_perfil, 'src/config.ini', 'DADOS')
+        
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token Expirado")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Token Inválido")
 
-    return {"mensagem": f"Bem-vindo ao Dashboard, {usuario}."}
+    return {"mensagem": f"Bem-vindo ao Dashboard, {funcionario}.", "permissoes": permissoes}
     
 
 # Inicia o servidor
